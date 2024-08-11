@@ -59,6 +59,27 @@ class LightTableGenerator(TableGeneratorBase):
     title = "Ведомость наличия и технического состояния столбов освещения"
     condition = "[in ('0301','0401')]"
 
+    def _get_raw_data(self):
+        data = super()._get_raw_data()
+
+        if data:
+            previous_item = data[0]
+            previous_item.params['counter'] = 1
+            result = []
+            for item in data[1:]:
+                if item.position == previous_item.position and abs(item.begin - previous_item.end) <= 100:
+                    previous_item.end = item.begin
+                    previous_item.end_km = item.begin_km
+                    previous_item.end_m = item.begin_m
+                    previous_item.params['counter'] += 1
+                else:
+                    result.append(previous_item)
+                    previous_item = item
+                    previous_item.params['counter'] = 1
+
+            result.append(previous_item)
+
+        return result
 
 class BarriersTableGenerator(TableGeneratorBase):
     title = "Ведомость наличия и технического состояния ограждений на автомобильной дороге"

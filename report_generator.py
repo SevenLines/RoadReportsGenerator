@@ -2,11 +2,10 @@ from pprint import pprint
 
 
 from db import RoadsDB
+from generators.tech_passport_generator import TechPassportGenerator
 
 from table_generators.generators import SignTableGenerator
 
-db = RoadsDB()
-generator = SignTableGenerator(366311, db)
-data = generator.prepare_data()
+generator = TechPassportGenerator()
+generator.generate(525770)
 
-pprint(data)
