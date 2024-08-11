@@ -1,0 +1,2 @@
+class BaseGenerator(object):
+    template = ""
