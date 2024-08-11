@@ -1,13 +1,14 @@
 import json
 from collections import namedtuple
 from dataclasses import dataclass
+from typing import List
 
 from docx.document import Document
 from docx.table import Table
 from docx.text.paragraph import Paragraph
 from sqlalchemy import text, bindparam
 
-from models import Attribute
+from models import Attribute, SVPDPoint
 
 POSITION_LEFT = -1
 POSITION_RIGHT = 1
@@ -19,10 +20,12 @@ class DbRow:
     id: int
     name: str
     type: int
+    length: int
     begin: int
     begin_km: int
     begin_m: int
     end: int
+    x_offset: float
     end_km: int
     end_m: int
     position: str
@@ -31,6 +34,8 @@ class DbRow:
     is_cross: bool
     format: int
     params: dict
+    points: List[SVPDPoint]
+
 
 class TableGeneratorBase(object):
     condition = ""
@@ -86,6 +91,9 @@ class TableGeneratorBase(object):
                     "end": item.Конец,
                     "end_km": item.Конец // 1000,
                     "end_m": item.Конец % 1000,
+                    "length": abs(item.Конец - item.Начало),
+                    'x_offset': abs(max_p + min_p) / 2,
+                    "points": points,
                     "position": position,
                     "is_left": position == 'слева',
                     "is_right": position == 'справа',
@@ -95,7 +103,12 @@ class TableGeneratorBase(object):
                 })
 
                 params = s.execute(text(f"""
-                SELECT Params.ID_Param, Types_Description.Param_Name, Params.ValueParam, Params.Suffix FROM Params INNER JOIN Types_Description ON Params.ID_Param = Types_Description.ID_Param WHERE (Params.ID_Attribute = {item.ID_Attribute})  and Params.ID_RegDate=dbo.GetIndexDate(1,Params.ID_Param,Params.ID_Attribute) order by Params.ID_Param
+                SELECT Params.ID_Param, Types_Description.Param_Name, Params.ValueParam, Params.Suffix 
+                FROM Params 
+                INNER JOIN Types_Description ON Params.ID_Param = Types_Description.ID_Param 
+                WHERE (Params.ID_Attribute = {item.ID_Attribute})  
+                and Params.ID_RegDate=dbo.GetIndexDate(1,Params.ID_Param,Params.ID_Attribute) 
+                order by Params.ID_Param
                 """))
                 for p in params:
                     item_data.params[p.Param_Name] = p.ValueParam
@@ -126,18 +139,22 @@ class TableGeneratorBase(object):
         for row_index, item in enumerate(data):
             row = table.add_row()
             print(item)
-            for cell_index, cell in enumerate(cells_eval):
-                func = cells_eval[cell_index].replace('‘', "'").replace('’', "'")
-                if func == '[counter]':
-                    row.cells[cell_index].text = str(row_index + 1)
-                elif func == '[item]':
-                    row.cells[cell_index].text = str(item)
-                elif func.startswith('[') and func.endswith(']'):
-                    result = eval(func[1:-1])
-                    if isinstance(result, bool):
-                        if result:
-                            row.cells[cell_index].text = '+'
-                    elif result is not None:
-                        row.cells[cell_index].text = str(result)
-                else:
-                    row.cells[cell_index].text = func
+            try:
+                for cell_index, cell in enumerate(cells_eval):
+                    func = cells_eval[cell_index].replace('‘', "'").replace('’', "'").strip()
+                    if func == '[counter]':
+                        row.cells[cell_index].text = str(row_index + 1)
+                    elif func == '[item]':
+                        row.cells[cell_index].text = str(item)
+                    elif func.startswith('[') and func.endswith(']'):
+                        result = eval(func[1:-1])
+                        if isinstance(result, bool):
+                            if result:
+                                row.cells[cell_index].text = '+'
+                        elif result is not None:
+                            row.cells[cell_index].text = str(result)
+                    else:
+                        row.cells[cell_index].text = func
+            except Exception as ex:
+                print(self)
+                raise

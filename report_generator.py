@@ -7,5 +7,5 @@ from generators.tech_passport_generator import TechPassportGenerator
 from table_generators.generators import SignTableGenerator
 
 generator = TechPassportGenerator()
-generator.generate(525770)
+generator.generate(12)
 

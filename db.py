@@ -9,7 +9,7 @@ class RoadsDB(object):
     def __init__(self):
         self.config = configparser.ConfigParser()
         self.config.read('config.ini')
-        self.engine = create_engine(self.connection_string())
+        self.engine = create_engine(self.connection_string(), use_setinputsizes=False)
 
     def connection_string(self):
         c = self.config['connection']

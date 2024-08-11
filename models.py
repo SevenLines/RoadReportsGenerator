@@ -32,6 +32,10 @@ class SVPDPoint(object):
             self.a,
         )
 
+    @staticmethod
+    def distance(point1: 'SVPDPoint', point2: 'SVPDPoint'):
+        return math.sqrt((point2.x - point1.x) ** 2 + (point2.y - point1.y) ** 2 + (point2.z - point1.z) ** 2)
+
     def get_lat_lng(self, lat, lng):
         return get_offset(lat, lng, self.x, self.y)
 
@@ -65,7 +69,6 @@ class Road(Base):
         if road_axe:
             return (0, road_axe.L2 - road_axe.L1)
         return (0, 0)
-
 
 class Way(Base):
     __tablename__ = "Way"

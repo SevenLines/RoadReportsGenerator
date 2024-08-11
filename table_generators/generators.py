@@ -1,3 +1,4 @@
+from models import SVPDPoint
 from table_generators.base import TableGeneratorBase
 
 
@@ -14,6 +15,14 @@ class SidewalksTableGenerator(TableGeneratorBase):
     title = "Ведомость наличия и технического состояния тротуаров и пешеходных дорожек на автодороге"
     condition = "[in ('0405')]"
 
+    def _get_raw_data(self):
+        data = super()._get_raw_data()
+
+        for item in data:
+            item.params['width'] = abs(item.points[0].a - item.points[-1].a)
+
+        return data
+
 
 class ZastroikaTableGenerator(TableGeneratorBase):
     title = "Ведомость застройки прилегающих к автомобильной дороге территорий"
@@ -23,6 +32,21 @@ class ZastroikaTableGenerator(TableGeneratorBase):
 class DirectDevicesTableGenerator(TableGeneratorBase):
     title = "Ведомость наличия направляющих устройств на автомобильной дороге"
     condition = "[in ('020302')]"
+
+    def _get_raw_data(self):
+        data = super()._get_raw_data()
+
+        for item in data:
+            item.params['count'] = len(item.points)
+
+            between_distance = 0
+
+            for i in range(len(item.points) - 1):
+                between_distance += SVPDPoint.distance(item.points[i], item.points[i+1])
+
+            item.params['between_distance'] = round(between_distance / len(item.points), 1)
+
+        return data
 
 
 class GreenTableGenerator(TableGeneratorBase):
@@ -62,10 +86,10 @@ class LightTableGenerator(TableGeneratorBase):
     def _get_raw_data(self):
         data = super()._get_raw_data()
 
+        result = []
         if data:
             previous_item = data[0]
             previous_item.params['counter'] = 1
-            result = []
             for item in data[1:]:
                 if item.position == previous_item.position and abs(item.begin - previous_item.end) <= 100:
                     previous_item.end = item.begin
