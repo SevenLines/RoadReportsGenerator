@@ -19,7 +19,7 @@ class SidewalksTableGenerator(TableGeneratorBase):
         data = super()._get_raw_data()
 
         for item in data:
-            item.params['width'] = abs(item.points[0].a - item.points[-1].a)
+            item.params['width'] = round(abs(item.points[0].a - item.points[-1].a), 1)
 
         return data
 
@@ -104,6 +104,11 @@ class LightTableGenerator(TableGeneratorBase):
             result.append(previous_item)
 
         return result
+
+
+class CurveTableGenerator(TableGeneratorBase):
+    title = "Кривые в плане"
+    condition = "[ in ('23120104')]"
 
 class BarriersTableGenerator(TableGeneratorBase):
     title = "Ведомость наличия и технического состояния ограждений на автомобильной дороге"

@@ -2,7 +2,7 @@ from generators.base_generator import BaseGenerator
 from table_generators.generators import VodootvodTableGenerator, SignTableGenerator, SidewalksTableGenerator, \
     ZastroikaTableGenerator, DirectDevicesTableGenerator, GreenTableGenerator, CrossTableGenerator, \
     BusStopsTableGenerator, BridgesTableGenerator, TubesTableGenerator, CommunicationsTableGenerator, \
-    LightTableGenerator, BarriersTableGenerator
+    LightTableGenerator, BarriersTableGenerator, CurveTableGenerator
 
 
 class TechPassportGenerator(BaseGenerator):
@@ -22,6 +22,7 @@ class TechPassportGenerator(BaseGenerator):
         'CommunicationsTableGenerator': CommunicationsTableGenerator,
         'LightTableGenerator': LightTableGenerator, # +
         'BarriersTableGenerator': BarriersTableGenerator, # +
+        'CurveTableGenerator': CurveTableGenerator, # +
     }
 
 

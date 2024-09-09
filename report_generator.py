@@ -1,11 +1,13 @@
-from pprint import pprint
-
-
 from db import RoadsDB
 from generators.tech_passport_generator import TechPassportGenerator
-
-from table_generators.generators import SignTableGenerator
+from models import Road
 
 generator = TechPassportGenerator()
-generator.generate(12)
+
+with RoadsDB().session() as s:
+    roads = s.query(Road).filter(Road.Name.startswith("Хомутово - Н Каландаришвили"))
+
+    for r in roads:
+        print(r.Name)
+        generator.generate(r.id, with_image=True)
 

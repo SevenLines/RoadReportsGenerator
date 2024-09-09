@@ -91,8 +91,8 @@ class TableGeneratorBase(object):
                     "end": item.Конец,
                     "end_km": item.Конец // 1000,
                     "end_m": item.Конец % 1000,
-                    "length": abs(item.Конец - item.Начало),
-                    'x_offset': abs(max_p + min_p) / 2,
+                    "length": round(abs(item.Конец - item.Начало), 1),
+                    'x_offset': round(abs(max_p + min_p) / 2, 1),
                     "points": points,
                     "position": position,
                     "is_left": position == 'слева',
@@ -138,7 +138,6 @@ class TableGeneratorBase(object):
 
         for row_index, item in enumerate(data):
             row = table.add_row()
-            print(item)
             try:
                 for cell_index, cell in enumerate(cells_eval):
                     func = cells_eval[cell_index].replace('‘', "'").replace('’', "'").strip()

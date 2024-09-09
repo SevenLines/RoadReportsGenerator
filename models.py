@@ -1,7 +1,10 @@
 import math
 import struct
 
+import pyproj
 import sqlalchemy as sa
+from pyproj import Proj, Transformer
+from pyproj.enums import TransformDirection
 from sqlalchemy import Column, Integer, Float
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -55,12 +58,22 @@ class Road(Base):
     def get_main_axe_coordinates(self, session):
         road_axe = self.get_main_axe(session)
         survey_item = session.query(SurveyItem) \
-            .filter(SurveyItem.high_id == road_axe.high_id).first()
+            .join(SurveySection, SurveySection.survey_item_id == SurveyItem.id) \
+            .filter(SurveySection.high_id == road_axe.high_id).first()
         points = []
+
+        transformer = Transformer.from_crs("EPSG:4326", "EPSG:7683")
+
         for p in road_axe.points:
+            x1, y1 = transformer.transform(math.degrees(survey_item.latitude), math.degrees(survey_item.longitude))
+            # new_latitude, new_longitude = transformer.transform(x1 + p.x * 1.6357, y1 + p.y * 1.6357, direction=TransformDirection.INVERSE)
+            new_latitude, new_longitude = transformer.transform(x1 + p.x, y1 + p.y, direction=TransformDirection.INVERSE)
+            # r_earth = 6371000
+            # new_latitude = math.degrees(survey_item.latitude) + (p.y / r_earth) * (180 / math.pi)
+            # new_longitude = math.degrees(survey_item.longitude) + (p.x / r_earth) * (180 / math.pi) / math.cos(math.degrees(survey_item.latitude) * math.pi / 180)
             points.append({
-                'lat': math.degrees(survey_item.latitude) + p.y * -8.986642677244117e-06,
-                'lng': math.degrees(survey_item.longitude) + p.x * -1.4655401709054041e-05,
+                'lat': new_latitude,
+                'lng':  new_longitude,
             })
         return points
 
@@ -90,10 +103,17 @@ class Params(Base):
     list_id = Column("ID_List", sa.Integer)
 
 
+class SurveySection(Base):
+    __tablename__ = "SurveySection"
+    id = Column("ID_Section", Integer, primary_key=True)
+    high_id = Column("ID_High", Integer,)
+    survey_item_id = Column("ID_Survey_Item", Integer)
+    height = Column("height", Float)
+
+
 class SurveyItem(Base):
     __tablename__ = "Survey_Item"
     id = Column("ID_Survey_Item", Integer, primary_key=True)
-    high_id = Column("ID_High", Integer, sa.ForeignKey("High.ID_High"))
     latitude = Column("latitude", Float)
     longitude = Column("longitude", Float)
     height = Column("height", Float)
