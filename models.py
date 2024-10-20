@@ -65,12 +65,12 @@ class Road(Base):
         transformer = Transformer.from_crs("EPSG:4326", "EPSG:7683")
 
         for p in road_axe.points:
-            x1, y1 = transformer.transform(math.degrees(survey_item.latitude), math.degrees(survey_item.longitude))
+            # x1, y1 = transformer.transform(math.degrees(survey_item.latitude), math.degrees(survey_item.longitude))
             # new_latitude, new_longitude = transformer.transform(x1 + p.x * 1.6357, y1 + p.y * 1.6357, direction=TransformDirection.INVERSE)
-            new_latitude, new_longitude = transformer.transform(x1 + p.x, y1 + p.y, direction=TransformDirection.INVERSE)
-            # r_earth = 6371000
-            # new_latitude = math.degrees(survey_item.latitude) + (p.y / r_earth) * (180 / math.pi)
-            # new_longitude = math.degrees(survey_item.longitude) + (p.x / r_earth) * (180 / math.pi) / math.cos(math.degrees(survey_item.latitude) * math.pi / 180)
+            # new_latitude, new_longitude = transformer.transform(x1 + p.x, y1 + p.y, direction=TransformDirection.INVERSE)
+            r_earth = 6371000
+            new_latitude = math.degrees(survey_item.latitude) + (p.y / r_earth) * (180 / math.pi)
+            new_longitude = math.degrees(survey_item.longitude) + (p.x / r_earth) * (180 / math.pi) / math.cos(math.degrees(survey_item.latitude) * math.pi / 180)
             points.append({
                 'lat': new_latitude,
                 'lng':  new_longitude,
@@ -146,6 +146,11 @@ class Attribute(Base):
             .join(High, High.id == Attribute.high_id) \
             .join(Way, Way.id == High.way_id) \
             .filter(Way.road_id == road_id)
+        return qs
+
+    @classmethod
+    def query_by_high(self, session, high_id):
+        qs = session.query(Attribute).filter(Attribute.high_id == high_id)
         return qs
 
     @property

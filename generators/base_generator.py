@@ -1,6 +1,8 @@
+import datetime
 import io
 import os
 from statistics import mean
+from time import sleep
 
 from PIL import Image
 from docx.shared import Mm
@@ -10,13 +12,29 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chromium.webdriver import ChromiumDriver
 
 from db import RoadsDB
-from models import Road, High, Way
+from generators.utils import RangeCustom, Range
+from models import Road, High, Way, Attribute
 import folium
+
+from table_generators.base import TableGeneratorBase
+from table_generators.generators import CoverTypeTableAggregateGenerator, SignAggregateGenerator, \
+    CommunicationsAggregateGenerator, LightAggregateGenerator, BarriersAggregateGenerator, TubesAggregateGenerator, \
+    CrossAggregateGenerator
 
 
 class BaseGenerator(object):
     template = ""
     tables_generators = {}
+
+
+
+    def test_generator(self, road_id, table_generator: type[TableGeneratorBase]):
+        db = RoadsDB()
+        with db.session() as s:
+            road = s.query(Road).filter(Road.id == road_id).first()
+            high = s.query(High).join(Way, Way.id == High.way_id) \
+                .filter(Way.road_id == road.id).first()
+        return table_generator(high.id, road, db)._get_raw_data()
 
     def generate(self, road_id, save_folder="output", with_image=False):
         doc_template = DocxTemplate(os.path.join("templates", self.template))
@@ -41,35 +59,48 @@ class BaseGenerator(object):
                 })
 
         for table_info in tables_to_fill:
-            table_info['generator'](high.id, db).fill(table_info['table'], doc)
+            table_info['generator'](high.id, road, db).fill(table_info['table'], doc)
+
+        covers = CoverTypeTableAggregateGenerator(high.id, road, db)._get_raw_data()
+        covers['rest'] = road_length - covers['total']
 
         context = {
             'road_title': road.Name,
             'road_length': road_length,
+            'year': datetime.datetime.now().year,
+            'covers': covers,
+            'signs': SignAggregateGenerator(high.id, road, db)._get_raw_data(),
+            'light': LightAggregateGenerator(high.id, road, db)._get_raw_data()['length'],
+            'barriers': BarriersAggregateGenerator(high.id, road, db)._get_raw_data()['length'],
+            'tubes': TubesAggregateGenerator(high.id, road, db)._get_raw_data(),
+            'cross': CrossAggregateGenerator(high.id, road, db)._get_raw_data(),
         }
 
         if with_image:
             axe = road.get_main_axe_coordinates(s)
-
             points = [(i['lat'], i['lng']) for i in axe]
+            lng = mean(i['lng'] for i in axe)
+            lat = mean(i['lat'] for i in axe)
+            print(lng, lat)
             map = folium.Map(
-                location=(mean(i['lat'] for i in axe), mean(i['lng'] for i in axe)),
+                location=(lat, lng)
+                # location=(mean(i['lng'] for i in axe), mean(i['lat'] for i in axe)),
             )
-            folium.PolyLine(
-                points,
-                color="#FF0000",
-                weight=25,
-                opacity=0.5,
-            ).add_to(map)
+            # folium.PolyLine(
+            #     points,
+            #     color="#FF0000",
+            #     weight=25,
+            #     opacity=0.5,
+            # ).add_to(map)
             map.fit_bounds(points)
-            map.show_in_browser()
+            # map.show_in_browser()
 
-            # options = Options()
-            # options.add_argument('--headless=new')
-            # img_data = map._to_png(driver=webdriver.Chrome(options), delay=1)
-            # img = Image.open(io.BytesIO(img_data))
-            # img.save('scheme.png')
-            # context['scheme'] = InlineImage(doc_template, "scheme.png", width=Mm(173))
+            options = Options()
+            options.add_argument('--headless=new')
+            img_data = map._to_png(driver=webdriver.Chrome(options), delay=2)
+            img = Image.open(io.BytesIO(img_data))
+            img.save('scheme.png')
+            context['scheme'] = InlineImage(doc_template, "scheme.png", width=Mm(173))
 
         doc_template.render(context)
 

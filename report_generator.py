@@ -1,13 +1,18 @@
 from db import RoadsDB
-from generators.tech_passport_generator import TechPassportGenerator
+from generators.tech_passport_generator_20241019 import TechPassportGenerator20241019
 from models import Road
 
-generator = TechPassportGenerator()
+generator = TechPassportGenerator20241019()
+
 
 with RoadsDB().session() as s:
-    roads = s.query(Road).filter(Road.Name.startswith("Хомутово - Н Каландаришвили"))
+    roads = s.query(Road).filter(
+        # Road.id.in_([1136999, 1149430, 1149569])
+        Road.id.in_([1149430])
+        # Road.Name.startswith("Ушаковское")
+    )
 
     for r in roads:
-        print(r.Name)
-        generator.generate(r.id, with_image=True)
-
+        # data = generator.test_generator(r.id, CoverTypeTableGenerator)
+        # print(data)
+        generator.generate(r.id, with_image=False)

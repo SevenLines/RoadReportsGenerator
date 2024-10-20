@@ -21,6 +21,7 @@ class DbRow:
     name: str
     type: int
     length: int
+    distance: float
     begin: int
     begin_km: int
     begin_m: int
@@ -41,9 +42,10 @@ class TableGeneratorBase(object):
     condition = ""
     title = ""
 
-    def __init__(self, high_id, db):
+    def __init__(self, high_id, road, db):
         self.db = db
         self.high_id = high_id
+        self.road = road
 
     @staticmethod
     def remove_row(table: Table, row):
@@ -92,6 +94,7 @@ class TableGeneratorBase(object):
                     "end_km": item.Конец // 1000,
                     "end_m": item.Конец % 1000,
                     "length": round(abs(item.Конец - item.Начало), 1),
+                    "distance": SVPDPoint.distance(points[0], points[-1]),
                     'x_offset': round(abs(max_p + min_p) / 2, 1),
                     "points": points,
                     "position": position,
