@@ -7,12 +7,12 @@ generator = TechPassportGenerator20241019()
 
 with RoadsDB().session() as s:
     roads = s.query(Road).filter(
-        # Road.id.in_([1136999, 1149430, 1149569])
-        Road.id.in_([1149430])
-        # Road.Name.startswith("Ушаковское")
+        Road.id.in_([1149658, 1149629, 1149599])
+        # Road.id.in_([1149658])
+        # Road.Name.startswith("Иволгинское МО - ")
     )
 
     for r in roads:
         # data = generator.test_generator(r.id, CoverTypeTableGenerator)
         # print(data)
-        generator.generate(r.id, with_image=False)
+        generator.generate(r.id, with_image=True)

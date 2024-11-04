@@ -15,6 +15,7 @@ class SignAggregateGenerator(SignTableGenerator):
             '1': 'предупреждающие',
             '2': 'приоритета',
             '3': 'запрещающие',
+            'З': 'запрещающие',
             '4': 'предписывающие',
             '5': 'особых предписаний',
             '6': 'информационно-указательные',
@@ -36,7 +37,9 @@ class SignAggregateGenerator(SignTableGenerator):
         }
 
         for s in result:
-            type = types.get(s.name[0])
+            type = types.get(str(s.name[0]).strip())
+            if type is None:
+                print(s.name[0])
             output_result[type] += 1
             output_result['total'] += 1
 
