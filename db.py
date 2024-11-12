@@ -14,7 +14,7 @@ class RoadsDB(object):
     def connection_string(self):
         c = self.config['connection']
 
-        return f"{self.db_driver}://{c['user']}:{c['password']}@{c['host']}/{c['database']}?driver=SQL+Server"
+        return f"{self.db_driver}://{c['user']}:{c['password']}@{c['host']}/{c['database']}?driver={c['driver']}"
 
     def session(self):
         return Session(self.engine)
