@@ -4,6 +4,7 @@ from api.report_generator import ReportGenerator
 from api.road_retreiver import RoadRetreiver
 from ui.context import context
 
+
 class ReportFormGUI:
 
     def __init__(self):
@@ -15,7 +16,5 @@ class ReportFormGUI:
             ui.label("Отчет").style("font-weight: bold;")
             ui.button(
                 "Сформировать",
-                on_click=lambda: self.report_generator.report(context['selected_id'])  
+                on_click=lambda: self.report_generator.report(context["selected_id"]),
             )
-    
-    

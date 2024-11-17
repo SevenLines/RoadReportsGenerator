@@ -1,5 +1,1 @@
-
-
-context = {
-    'selected_id': None
-}
+context = {"selected_id": None}

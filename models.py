@@ -36,8 +36,12 @@ class SVPDPoint(object):
         )
 
     @staticmethod
-    def distance(point1: 'SVPDPoint', point2: 'SVPDPoint'):
-        return math.sqrt((point2.x - point1.x) ** 2 + (point2.y - point1.y) ** 2 + (point2.z - point1.z) ** 2)
+    def distance(point1: "SVPDPoint", point2: "SVPDPoint"):
+        return math.sqrt(
+            (point2.x - point1.x) ** 2
+            + (point2.y - point1.y) ** 2
+            + (point2.z - point1.z) ** 2
+        )
 
     def get_lat_lng(self, lat, lng):
         return get_offset(lat, lng, self.x, self.y)
@@ -52,14 +56,21 @@ class Road(Base):
     Name = Column(sa.String)
 
     def get_main_axe(self, session):
-        road_axe = Attribute.query_by_road(session, self.id).filter(Attribute.ID_Type_Attr == "0303").first()
+        road_axe = (
+            Attribute.query_by_road(session, self.id)
+            .filter(Attribute.ID_Type_Attr == "0303")
+            .first()
+        )
         return road_axe
 
     def get_main_axe_coordinates(self, session):
         road_axe = self.get_main_axe(session)
-        survey_item = session.query(SurveyItem) \
-            .join(SurveySection, SurveySection.survey_item_id == SurveyItem.id) \
-            .filter(SurveySection.high_id == road_axe.high_id).first()
+        survey_item = (
+            session.query(SurveyItem)
+            .join(SurveySection, SurveySection.survey_item_id == SurveyItem.id)
+            .filter(SurveySection.high_id == road_axe.high_id)
+            .first()
+        )
         points = []
 
         transformer = Transformer.from_crs("EPSG:4326", "EPSG:7683")
@@ -69,12 +80,18 @@ class Road(Base):
             # new_latitude, new_longitude = transformer.transform(x1 + p.x * 1.6357, y1 + p.y * 1.6357, direction=TransformDirection.INVERSE)
             # new_latitude, new_longitude = transformer.transform(x1 + p.x, y1 + p.y, direction=TransformDirection.INVERSE)
             r_earth = 6371000
-            new_latitude = math.degrees(survey_item.latitude) + (p.y / r_earth) * (180 / math.pi)
-            new_longitude = math.degrees(survey_item.longitude) + (p.x / r_earth) * (180 / math.pi) / math.cos(math.degrees(survey_item.latitude) * math.pi / 180)
-            points.append({
-                'lat': new_latitude,
-                'lng':  new_longitude,
-            })
+            new_latitude = math.degrees(survey_item.latitude) + (p.y / r_earth) * (
+                180 / math.pi
+            )
+            new_longitude = math.degrees(survey_item.longitude) + (p.x / r_earth) * (
+                180 / math.pi
+            ) / math.cos(math.degrees(survey_item.latitude) * math.pi / 180)
+            points.append(
+                {
+                    "lat": new_latitude,
+                    "lng": new_longitude,
+                }
+            )
         return points
 
     def get_length(self, session):
@@ -82,6 +99,7 @@ class Road(Base):
         if road_axe:
             return (0, road_axe.L2 - road_axe.L1)
         return (0, 0)
+
 
 class Way(Base):
     __tablename__ = "Way"
@@ -98,7 +116,9 @@ class High(Base):
 class Params(Base):
     __tablename__ = "Params"
     id = Column("ID_Param", Integer, primary_key=True)
-    attribute_id = Column("ID_Attribute", sa.Integer, sa.ForeignKey("Attribute.ID_Attribute"))
+    attribute_id = Column(
+        "ID_Attribute", sa.Integer, sa.ForeignKey("Attribute.ID_Attribute")
+    )
     value = Column("ValueParam", sa.String)
     list_id = Column("ID_List", sa.Integer)
 
@@ -106,7 +126,10 @@ class Params(Base):
 class SurveySection(Base):
     __tablename__ = "SurveySection"
     id = Column("ID_Section", Integer, primary_key=True)
-    high_id = Column("ID_High", Integer,)
+    high_id = Column(
+        "ID_High",
+        Integer,
+    )
     survey_item_id = Column("ID_Survey_Item", Integer)
     height = Column("height", Float)
 
@@ -135,17 +158,19 @@ class Attribute(Base):
         count = struct.unpack("i", Image_Counts[:4])[0]
         out = []
         for i in range(count):
-            data = struct.unpack('=iddddd', Image_Points[i * 44:(i + 1) * 44])
+            data = struct.unpack("=iddddd", Image_Points[i * 44 : (i + 1) * 44])
             point = SVPDPoint(*data)
             out.append(point)
         return out
 
     @classmethod
     def query_by_road(self, session, road_id):
-        qs = session.query(Attribute) \
-            .join(High, High.id == Attribute.high_id) \
-            .join(Way, Way.id == High.way_id) \
+        qs = (
+            session.query(Attribute)
+            .join(High, High.id == Attribute.high_id)
+            .join(Way, Way.id == High.way_id)
             .filter(Way.road_id == road_id)
+        )
         return qs
 
     @classmethod

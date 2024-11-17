@@ -55,64 +55,81 @@ class TableGeneratorBase(object):
 
     def _get_raw_data(self):
         with self.db.session() as s:
-            items = list(s.execute(text(f"""
+            items = list(
+                s.execute(
+                    text(
+                        f"""
             EXEC ExelReport {self.high_id}, 1, {self.condition}, 0.000000, 10000000, 1
-            """)))
-            query = text(f"""
+            """
+                    )
+                )
+            )
+            query = text(
+                f"""
             select ID_Attribute, Image_Points, Image_Counts from Attribute where (ID_Attribute in :ids)            
-            """)
+            """
+            )
 
-            query = query.bindparams(bindparam('ids', expanding=True))
-            attributes_info = {i.ID_Attribute: i for i in s.execute(query, {
-                "ids": [i.ID_Attribute for i in items]
-            })}
+            query = query.bindparams(bindparam("ids", expanding=True))
+            attributes_info = {
+                i.ID_Attribute: i
+                for i in s.execute(query, {"ids": [i.ID_Attribute for i in items]})
+            }
         result = []
 
         with self.db.session() as s:
             for item in items:
-                points = Attribute.get_points(attributes_info[item.ID_Attribute].Image_Points,
-                                              attributes_info[item.ID_Attribute].Image_Counts)
+                points = Attribute.get_points(
+                    attributes_info[item.ID_Attribute].Image_Points,
+                    attributes_info[item.ID_Attribute].Image_Counts,
+                )
 
                 max_p = max([p.a for p in points])
                 min_p = min([p.a for p in points])
 
                 if max_p * min_p < 0:
-                    position = 'пересекает'
+                    position = "пересекает"
                 elif max_p > 0:
-                    position = 'справа'
+                    position = "справа"
                 else:
-                    position = 'слева'
+                    position = "слева"
 
-                item_data = DbRow(**{
-                    "id": item.ID_Attribute,
-                    "name": item._asdict()['Название атрибута'],
-                    "type": item.ID_Type_Attr,
-                    "begin": item.Начало,
-                    "begin_km": item.Начало // 1000,
-                    "begin_m": item.Начало % 1000,
-                    "end": item.Конец,
-                    "end_km": item.Конец // 1000,
-                    "end_m": item.Конец % 1000,
-                    "length": round(abs(item.Конец - item.Начало), 1),
-                    "distance": SVPDPoint.distance(points[0], points[-1]),
-                    'x_offset': round(abs(max_p + min_p) / 2, 1),
-                    "points": points,
-                    "position": position,
-                    "is_left": position == 'слева',
-                    "is_right": position == 'справа',
-                    "is_cross": position == 'пересекает',
-                    "format": item.ID_Format,
-                    "params": {}
-                })
+                item_data = DbRow(
+                    **{
+                        "id": item.ID_Attribute,
+                        "name": item._asdict()["Название атрибута"],
+                        "type": item.ID_Type_Attr,
+                        "begin": item.Начало,
+                        "begin_km": item.Начало // 1000,
+                        "begin_m": item.Начало % 1000,
+                        "end": item.Конец,
+                        "end_km": item.Конец // 1000,
+                        "end_m": item.Конец % 1000,
+                        "length": round(abs(item.Конец - item.Начало), 1),
+                        "distance": SVPDPoint.distance(points[0], points[-1]),
+                        "x_offset": round(abs(max_p + min_p) / 2, 1),
+                        "points": points,
+                        "position": position,
+                        "is_left": position == "слева",
+                        "is_right": position == "справа",
+                        "is_cross": position == "пересекает",
+                        "format": item.ID_Format,
+                        "params": {},
+                    }
+                )
 
-                params = s.execute(text(f"""
+                params = s.execute(
+                    text(
+                        f"""
                 SELECT Params.ID_Param, Types_Description.Param_Name, Params.ValueParam, Params.Suffix 
                 FROM Params 
                 INNER JOIN Types_Description ON Params.ID_Param = Types_Description.ID_Param 
                 WHERE (Params.ID_Attribute = {item.ID_Attribute})  
                 and Params.ID_RegDate=dbo.GetIndexDate(1,Params.ID_Param,Params.ID_Attribute) 
                 order by Params.ID_Param
-                """))
+                """
+                    )
+                )
                 for p in params:
                     item_data.params[p.Param_Name] = p.ValueParam
 
@@ -143,16 +160,21 @@ class TableGeneratorBase(object):
             row = table.add_row()
             try:
                 for cell_index, cell in enumerate(cells_eval):
-                    func = cells_eval[cell_index].replace('‘', "'").replace('’', "'").strip()
-                    if func == '[counter]':
+                    func = (
+                        cells_eval[cell_index]
+                        .replace("‘", "'")
+                        .replace("’", "'")
+                        .strip()
+                    )
+                    if func == "[counter]":
                         row.cells[cell_index].text = str(row_index + 1)
-                    elif func == '[item]':
+                    elif func == "[item]":
                         row.cells[cell_index].text = str(item)
-                    elif func.startswith('[') and func.endswith(']'):
+                    elif func.startswith("[") and func.endswith("]"):
                         result = eval(func[1:-1])
                         if isinstance(result, bool):
                             if result:
-                                row.cells[cell_index].text = '+'
+                                row.cells[cell_index].text = "+"
                         elif result is not None:
                             row.cells[cell_index].text = str(result)
                     else:

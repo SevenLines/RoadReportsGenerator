@@ -8,11 +8,11 @@ class RoadsDB(object):
 
     def __init__(self):
         self.config = configparser.ConfigParser()
-        self.config.read('config.ini')
+        self.config.read("config.ini")
         self.engine = create_engine(self.connection_string(), use_setinputsizes=False)
 
     def connection_string(self):
-        c = self.config['connection']
+        c = self.config["connection"]
 
         return f"{self.db_driver}://{c['user']}:{c['password']}@{c['host']}/{c['database']}?driver={c['driver']}"
 
@@ -25,11 +25,11 @@ class RoadsDBAccess(object):
 
     def __init__(self):
         self.config = configparser.ConfigParser()
-        self.config.read('config.ini')
+        self.config.read("config.ini")
         self.engine = create_engine(self.connection_string(), use_setinputsizes=False)
 
     def connection_string(self):
-        c = self.config['connection']
+        c = self.config["connection"]
 
         return f"{self.db_driver}://e:\\Roads\\2024\\_\\1\\Хомутово - Братская.svpd"
 
