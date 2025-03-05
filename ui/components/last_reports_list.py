@@ -4,7 +4,7 @@ from api.utils import open_finder_macos
 
 
 def last_reports_list():
-    with ui.card():
+    with ui.card().style("height: 100%"):
         ui.label("Последние отчеты").style("font-weight: bold;")
         with ui.grid(columns=4):
             for f in os.listdir("output")[::-1][:3]:

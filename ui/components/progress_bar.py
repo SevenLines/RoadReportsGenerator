@@ -1,5 +1,5 @@
 from nicegui import ui
-from ui.context import context, change_stop_thread
+from api.context import AppContextManager
 
 
 class ReportProgressBar:
@@ -10,7 +10,9 @@ class ReportProgressBar:
             self.label = (
                 ui.label("Текущий документ: ")
                 .bind_text_from(
-                    context, "current_road_name", lambda v: "Текущий документ: " + v
+                    AppContextManager.context,
+                    "current_road_name",
+                    lambda v: "Текущий документ: " + v,
                 )
                 .style("font-weight: bold;")
             )
@@ -18,7 +20,9 @@ class ReportProgressBar:
                 self.progress_bar = (
                     ui.linear_progress(show_value=True)
                     .bind_value_from(
-                        context, "current_road", lambda v: f"{v * 100:.2f}%"
+                        AppContextManager.context,
+                        "current_road",
+                        lambda v: f"{v * 100:.2f}%",
                     )
                     .props("rounded outlined dense")
                 )
@@ -27,9 +31,9 @@ class ReportProgressBar:
                 )
 
     def stop_report(self):
-        change_stop_thread()
+        AppContextManager.context["stop_thread"] = True
+        AppContextManager.context["current_road"] = 0
         self.progress_bar.value = 0
-        context["current_road"] = 0
         self.hide()
 
     def hide(self):

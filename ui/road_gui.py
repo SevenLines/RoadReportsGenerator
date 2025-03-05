@@ -1,14 +1,15 @@
 from nicegui import ui
 from api.road_retreiver import RoadRetreiver
-from ui.context import context
-from ui.map import RoadMap
+from api.context import AppContextManager
+from ui.components.map import RoadMap
+
 
 class RoadGUI:
     retreiver = RoadRetreiver()
 
     def __init__(self):
         self.retreiver.get_roads()
-        with ui.card():
+        with ui.card().style("height: 100%"):
             with ui.row().style("width:100%"):
                 with ui.column().classes("col-span-2"):
                     self.search_row = self.search_row()
@@ -25,15 +26,18 @@ class RoadGUI:
                 with ui.column().classes("col-span-2"):
                     self.map = RoadMap()
 
-                
-
     def set_selected_id(self, rows: list):
-
+        """
+        Выбираем Id в гуишной табличке и перезагружаем карту
+        """
         ids = [row["id"] for row in rows]
-        context["selected_ids"] = ids
+        AppContextManager.context["selected_ids"] = ids
         self.map.change_map_center(ids[-1] if len(ids) > 0 else None)
 
     def update_table(self, search_text=None):
+        """
+        Перезагружаем таблицу по поиску
+        """
         if search_text is None:
             self.retreiver.get_roads()
         else:
@@ -43,19 +47,15 @@ class RoadGUI:
 
     def search_row(self):
         with ui.row().style("width:100%"):
-            with ui.button_group().props("rounded"):
-                with ui.button(
-                    on_click=lambda: self.update_table(search_input.value),
-                    color="white",
-                ):
-                    ui.icon("search")
-                with ui.button(on_click=lambda: self.update_table(), color="white"):
-                    ui.icon("clear")
-            search_input = (
-                ui.input(placeholder=" Поиск")
-                .props("rounded outlined dense")
-                .style("border: none")
-            )
+            # with ui.button_group().props("rounded"):
+            search_input = ui.input(
+                placeholder=" Поиск",
+                on_change=lambda: self.update_table(search_input.value),
+            ).props("rounded outlined dense")
+            with ui.button(on_click=lambda: self.update_table(), color="white").props(
+                "rounded"
+            ):
+                ui.icon("clear")
             # with ui.input(placeholder=" Поиск").props('rounded outlined dense').style('border: none') as search_input:
 
     # ui.label("Дороги")

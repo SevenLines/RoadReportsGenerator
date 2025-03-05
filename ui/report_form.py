@@ -2,8 +2,10 @@ from nicegui import ui
 
 from api.report_generator import ReportGenerator
 from api.road_retreiver import RoadRetreiver
-from ui.context import context
-from ui.progress_bar import ReportProgressBar
+from ui.components.template_settings import TemplateSettingsForm
+from api.context import AppContextManager
+from ui.dialogs.progress_bar import ReportProgressBar
+import os
 
 
 class ReportFormGUI:
@@ -12,9 +14,11 @@ class ReportFormGUI:
         self.report_generator = ReportGenerator()
         self.form = self.report_form()
 
-    def report_form(self):        
-        with ui.card():
+    def report_form(self):
+        with ui.card().style("height: 100%; width: 100%"):
             ui.label("Отчет").style("font-weight: bold;")
+            self.template_choise()
+
             ui.button(
                 "Сформировать",
                 on_click=lambda: self.start_reporting(),
@@ -22,10 +26,32 @@ class ReportFormGUI:
             self.progress_bar = ReportProgressBar()
             # self.progress_bar.hide()x
 
+    def template_choise(self):
+        templates = os.listdir("templates")
+        self.template_select = ui.select(
+            options=templates,
+            label="Выбор Шаблона",
+            with_input=True,
+        )
+        self.template_settings = None
+        ui.button(
+            "Настроить переменные", on_click=lambda: self.show_template_settings()
+        )
+        self.template_select.on_value_change(self.select_template)
+
+    def show_template_settings(self):
+        self.template_settings = TemplateSettingsForm()
+        self.template_settings.show()
+
+    def select_template(self, change):
+        AppContextManager.context["selected_template"] = change.value
+
     def start_reporting(self):
-        if len(context["selected_ids"]) == 0:
+        if len(AppContextManager.context["selected_ids"]) == 0:
             ui.notify("Выберите документы для формирования отчета")
         else:
-            context["stop_thread"] = False
+            AppContextManager.context["stop_thread"] = False
             self.progress_bar.show()
-            self.report_generator.start_multy_thread(context["selected_ids"])
+            self.report_generator.start_multy_thread(
+                AppContextManager.context["selected_ids"]
+            )

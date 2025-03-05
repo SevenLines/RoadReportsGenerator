@@ -1,9 +1,10 @@
-
 def check_in(range1, range2):
-    return range2[0] <= range1[0] < range2[1] \
-           or range2[0] <= range1[1] < range2[1] \
-           or range1[0] <= range2[1] < range1[1] \
-           or range1[0] <= range2[1] < range1[1]
+    return (
+        range2[0] <= range1[0] < range2[1]
+        or range2[0] <= range1[1] < range2[1]
+        or range1[0] <= range2[1] < range1[1]
+        or range1[0] <= range2[1] < range1[1]
+    )
 
 
 class Range(object):
@@ -79,8 +80,8 @@ class RangeAvg(Range):
 
 class RangeCustom(Range):
     def __init__(self, *args, **kwargs) -> None:
-        if 'join_function' in kwargs:
-            self.join_function = kwargs.pop('join_function')
-        if 'equal_function' in kwargs:
-            self.equal_function = kwargs.pop('equal_function')
+        if "join_function" in kwargs:
+            self.join_function = kwargs.pop("join_function")
+        if "equal_function" in kwargs:
+            self.equal_function = kwargs.pop("equal_function")
         super().__init__(*args, **kwargs)
