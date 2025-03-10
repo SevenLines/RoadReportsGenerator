@@ -12,6 +12,7 @@ def main_page():
     with ui.row().style("width: 100%; height: 100%"):
         with ui.column().style("width: 75rem;height: 100%"):
             RoadGUI()
-        with ui.column().style("width: 20rem;height: 100%"):
+        with ui.column().style("width: 15rem;height: 100%"):
             ReportFormGUI()
+        with ui.column().style("width: 15rem;height: 100%"):
             last_reports_list()

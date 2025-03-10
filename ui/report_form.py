@@ -25,6 +25,8 @@ class ReportFormGUI:
             )
             self.progress_bar = ReportProgressBar()
             # self.progress_bar.hide()x
+        with ui.card().style("height: 100%; width: 100%"):
+            self.settings = TemplateSettingsForm()
 
     def template_choise(self):
         templates = os.listdir("templates")
@@ -34,17 +36,20 @@ class ReportFormGUI:
             with_input=True,
         )
         self.template_settings = None
-        ui.button(
-            "Настроить переменные", on_click=lambda: self.show_template_settings()
-        )
+        # ui.button(
+        #     "Настроить переменные", on_click=lambda: self.show_template_settings()
+        # )
         self.template_select.on_value_change(self.select_template)
 
-    def show_template_settings(self):
-        self.template_settings = TemplateSettingsForm()
-        self.template_settings.show()
+    # def show_template_settings(self):
+    #     if self.template_settings:
+    #         self.template_settings.clear()
+    #     self.template_settings = TemplateSettingsForm()
 
     def select_template(self, change):
         AppContextManager.context["selected_template"] = change.value
+        print(change.value)
+        self.settings.update()
 
     def start_reporting(self):
         if len(AppContextManager.context["selected_ids"]) == 0:

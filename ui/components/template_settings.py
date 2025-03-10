@@ -7,18 +7,25 @@ import os
 class TemplateSettingsForm:
     def __init__(self):
         self.get_variables()
-        with ui.dialog() as self.dialog, ui.card() as form:
-            ui.label("Настройка переменных")
-            with ui.column():
-                for k, var in AppContextManager.context["form_variables"].items():
-                    with ui.row().style("width:100%"):
-                        ui.input(
-                            label=k,
-                            value=var,
-                            on_change=lambda v: self.on_value_changed(k, v),
-                        )
+        ui.label("Настройка переменных")
+        self.col = ui.column()
+            
 
-            ui.button("Сохранить", on_click=self.hide)
+    def render_variable_list(self):
+        self.col.clear()
+        with self.col:
+            for k, var in AppContextManager.context["form_variables"].items():
+                print(k,var)
+                with ui.row().style("width:100%"):
+                    ui.input(
+                        label=k,
+                        value=var,
+                        on_change=lambda v: self.on_value_changed(k, v),
+                    )
+
+    def update(self):
+        self.get_variables()
+        self.render_variable_list()
 
     def get_variables(self):
         if AppContextManager.context["selected_template"]:
@@ -35,9 +42,3 @@ class TemplateSettingsForm:
             AppContextManager.context["form_variables"][k] = int(v.value)
         except ValueError:
             AppContextManager.context["form_variables"][k] = v.value
-
-    def hide(self):
-        self.dialog.close()
-
-    def show(self):
-        self.dialog.open()

@@ -34,6 +34,7 @@ class AppContextManager:
         """
         Отдаем переменные которые нужно заполнить через форму
         """
+        cls.context["form_variables"] = {}
         for v in variables - cls.get_context_from_db():
             cls.context["form_variables"][v] = ""
         print(cls.context["form_variables"])
