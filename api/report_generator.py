@@ -1,4 +1,4 @@
-from db import RoadsDB
+from api.db import RoadsDB
 from generators.tech_passport_generator_20241019 import TechPassportGenerator20241019
 from generators.tech_passport_generator import TechPassportGenerator
 from models import Road

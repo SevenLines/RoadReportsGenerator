@@ -1,4 +1,4 @@
-from db import RoadsDB
+from api.db import RoadsDB
 from models import Road
 
 

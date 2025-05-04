@@ -7,9 +7,10 @@ from pyproj import Proj, Transformer
 from pyproj.enums import TransformDirection
 from sqlalchemy import Column, Integer, Float
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
-
+SQLiteBase = declarative_base()
 
 def get_offset(lat, lng, offset_lat, offset_lng):
     new_lat = lat + offset_lat * 0.0000089
@@ -196,3 +197,35 @@ class ListAttrib(Base):
     __tablename__ = "Types_Description"
     id = Column("ID_Type_Attr", Integer, primary_key=True)
     name_attribute = Column("Param_Name", sa.String)
+
+
+class Connection(SQLiteBase):
+    __tablename__ = "connections"
+    id = Column(Integer, primary_key=True)
+    host = Column(sa.String)
+    db_name = Column(sa.String)
+    user = Column(sa.String)
+    password = Column(sa.String)
+
+    def __str__(self):
+        return f"{self.user}-{self.db_name}"
+    
+    def __repr__(self):
+        return f"{self.user}-{self.db_name}"
+
+
+class Template(SQLiteBase):
+    __tablename__ = 'templates'
+    id = Column(Integer, primary_key=True)
+    name = Column(sa.String, unique=True)
+    variables = relationship('TemplateVariable', back_populates='template')
+
+
+class TemplateVariable(SQLiteBase):
+    __tablename__ = 'template_variables'
+    id = Column(Integer, primary_key=True)
+    template_id = Column(Integer, sa.ForeignKey('templates.id'))
+    name = Column(sa.String)
+    value = Column(sa.String)
+
+    template = relationship('Template', back_populates='variables')

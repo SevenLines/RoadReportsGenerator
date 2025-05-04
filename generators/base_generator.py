@@ -11,7 +11,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chromium.webdriver import ChromiumDriver
 
-from db import RoadsDB
+from api.db import RoadsDB
 from generators.utils import RangeCustom, Range
 from models import Road, High, Way, Attribute
 import folium

@@ -1,7 +1,7 @@
 from statistics import mean
 from nicegui import ui
 from api.context import AppContextManager
-from db import RoadsDB
+from api.db import RoadsDB
 from models import Road
 
 
