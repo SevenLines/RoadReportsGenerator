@@ -1,30 +1,28 @@
 from nicegui import ui
 
-from api.managers.implementations import TemplateManager
+from api.managers.sqlite import SavedFileTemplateManager
 from api.contexts.state import StateContext
 from ui.components.base import BaseComponent
 
 class SavedTemplatesListComponent(BaseComponent):
 
-    manager = TemplateManager()
-    context_key = "current_template"
+    manager = SavedFileTemplateManager()
+    context_key = "template_list"
 
 
     def get_container(self):
-        return ui.list().props('dense separator')
+        return ui.card().style("width:30rem")
 
     @ui.refreshable
     def render(self):
-        options = self.manager.get_objects()
+        objs = self.manager.get_objects()
+        options = {}
+        for obj in objs:
+            options[obj.id] = obj.path
         with self.container:
-            ui.radio(
+            ui.select(
                 options=options,
-                on_change=lambda e:StateContext.set_value(self.context_key,e.value)
-                )
+                on_change=lambda e:(print(e.value), StateContext.set_value("current_template",e.value))
+                ).style("width:20rem").props("rounded outlined dense")
     
-    def update(self, *_):
-        pass
-    # def update(self, *_):
-
-    #     self.render.refresh()
 

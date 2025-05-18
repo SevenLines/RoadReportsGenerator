@@ -1,6 +1,7 @@
 from statistics import mean
 from nicegui import ui
-from api.context import AppContextManager
+from api.managers.road_factory import RoadManagerFactory
+from api.contexts.data_context import AppContext
 from api.db import RoadsDB
 from models import Road
 
@@ -11,7 +12,7 @@ class RoadMap:
         self.road_label = ui.label("").style("font-weight: bold; height: 0.5rem")
 
         self.map = ui.leaflet(
-            center=AppContextManager.context["default_center"], zoom=15
+            center=AppContext.context["default_center"], zoom=15
         ).style("height: 40rem; width: 40rem")
         ui.add_css(
             """
@@ -23,9 +24,9 @@ class RoadMap:
 
     def change_map_center(self, id):
         if id is None:
-            self.map.set_center(AppContextManager.context["default_center"])
+            self.map.set_center(AppContext.context["default_center"])
         else:
-            with RoadsDB().session() as s:
+            with RoadManagerFactory().db().session() as s:
                 road = s.query(Road).filter(Road.id == id).first()
                 self.road_label.set_text(road.Name)
                 axe = road.get_main_axe_coordinates(s)

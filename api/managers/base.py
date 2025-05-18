@@ -1,30 +1,33 @@
-import json
+
+from sqlalchemy import insert, select
+from api.contexts.state import StateContext
+from api.db import SQLiteDB
 
 
 class BaseManager:
-    path: str
-    object_name: str
-    objects = {}
+    db = SQLiteDB
+    change_state_key:str
+    model = None # Модель
 
+
+    def get_queryset(self):
+        return select(self.model)
 
     def get_objects(self):
-        """
-        Получаем обьекты
-        """
-        with open(self.path,'r') as f:
-            data = json.loads(f.read())
+        with self.db().session() as s:
+            return s.execute(self.get_queryset()).scalars().all()
         
-        objects = data.get(self.object_name)
+    def add_object(self,object:dict[str,any]):
+        with self.db().session() as s:
+            s.execute(
+                insert(self.model).values(**object)
+            )
+            s.commit()
+        StateContext.set_value(self.change_state_key)
 
-        return objects or []
-    
-
-    def add_object(self, object):
-        """
-        Добавляем обьект
-        """
-        data = self.get_objects()
-        data[self.object_name].append(object)
-
-        with open(self.path,'w') as f:
-            f.write(json.dumps(data))
+    def get_object(self,id:int):
+        with self.db().session() as s:
+            return s.execute(
+                self.get_queryset()
+                .where(self.model.id == id)
+            ).scalar_one_or_none()

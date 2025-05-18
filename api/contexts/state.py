@@ -5,9 +5,7 @@ class StateContext:
     @classmethod
     def set_value(cls, key, value=None):
         cls._state[key] = value
-        print(cls._listeners)
         if key in cls._listeners:
-            print(key)
             for callback in cls._listeners[key]:
                 callback(value)
 

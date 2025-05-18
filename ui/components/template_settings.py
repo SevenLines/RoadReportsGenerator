@@ -1,6 +1,6 @@
 from docxtpl import DocxTemplate
 from nicegui import ui
-from api.context import AppContextManager
+from api.contexts.data_context import AppContext
 import os
 
 
@@ -14,7 +14,7 @@ class TemplateSettingsForm:
     def render_variable_list(self):
         self.col.clear()
         with self.col:
-            for k, var in AppContextManager.context["form_variables"].items():
+            for k, var in AppContext.context["form_variables"].items():
                 print(k,var)
                 with ui.row().style("width:100%"):
                     ui.input(
@@ -28,17 +28,17 @@ class TemplateSettingsForm:
         self.render_variable_list()
 
     def get_variables(self):
-        if AppContextManager.context["selected_template"]:
+        if AppContext.context["selected_template"]:
             template = DocxTemplate(
                 os.path.join(
-                    "templates", AppContextManager.context["selected_template"]
+                    "templates", AppContext.context["selected_template"]
                 )
             )
             vars = template.get_undeclared_template_variables()
-            AppContextManager.get_form_context(vars)
+            AppContext.get_form_context(vars)
 
     def on_value_changed(self, k, v):
         try:
-            AppContextManager.context["form_variables"][k] = int(v.value)
+            AppContext.context["form_variables"][k] = int(v.value)
         except ValueError:
-            AppContextManager.context["form_variables"][k] = v.value
+            AppContext.context["form_variables"][k] = v.value

@@ -199,8 +199,8 @@ class ListAttrib(Base):
     name_attribute = Column("Param_Name", sa.String)
 
 
-class Connection(SQLiteBase):
-    __tablename__ = "connections"
+class DBConnection(SQLiteBase):
+    __tablename__ = "db_connections"
     id = Column(Integer, primary_key=True)
     host = Column(sa.String)
     db_name = Column(sa.String)
@@ -214,18 +214,19 @@ class Connection(SQLiteBase):
         return f"{self.user}-{self.db_name}"
 
 
-class Template(SQLiteBase):
-    __tablename__ = 'templates'
+class SavedFile(SQLiteBase):
+    __tablename__ = "saved_files"
     id = Column(Integer, primary_key=True)
-    name = Column(sa.String, unique=True)
+    path = Column(sa.String)
+    is_connection = Column(sa.Boolean)
     variables = relationship('TemplateVariable', back_populates='template')
 
 
 class TemplateVariable(SQLiteBase):
     __tablename__ = 'template_variables'
     id = Column(Integer, primary_key=True)
-    template_id = Column(Integer, sa.ForeignKey('templates.id'))
+    template_id = Column(Integer, sa.ForeignKey('saved_files.id'))
     name = Column(sa.String)
     value = Column(sa.String)
 
-    template = relationship('Template', back_populates='variables')
+    template = relationship('SavedFile', back_populates='variables')

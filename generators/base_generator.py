@@ -11,7 +11,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chromium.webdriver import ChromiumDriver
 
-from api.db import RoadsDB
+from api.managers.sqlite import TemplateVariablesManager
+from api.managers.road_factory import RoadManagerFactory
 from generators.utils import RangeCustom, Range
 from models import Road, High, Way, Attribute
 import folium
@@ -26,7 +27,7 @@ from table_generators.generators import (
     TubesAggregateGenerator,
     CrossAggregateGenerator,
 )
-from api.context import AppContextManager
+from api.contexts.data_context import AppContext
 
 
 class BaseGenerator(object):
@@ -34,8 +35,8 @@ class BaseGenerator(object):
     tables_generators = {}
 
     def test_generator(self, road_id, table_generator: type[TableGeneratorBase]):
-        db = RoadsDB()
-        with db.session() as s:
+        manager = RoadManagerFactory()
+        with manager.db().session() as s:
             road = s.query(Road).filter(Road.id == road_id).first()
             high = (
                 s.query(High)
@@ -45,13 +46,15 @@ class BaseGenerator(object):
             )
         return table_generator(high.id, road, db)._get_raw_data()
 
-    def generate(self, road_id, save_folder="output", with_image=False):
-        doc_template = DocxTemplate(os.path.join("templates", self.template))
+    def generate(self, road_id, template_path:str, save_folder="output", with_image=False):
+        # doc_template = DocxTemplate(os.path.join("templates", self.template))
+        doc_template = DocxTemplate(template_path)
         doc = doc_template.get_docx()
 
         tables_to_fill = []
 
-        db = RoadsDB()
+        manager = RoadManagerFactory()
+        db = manager.db()
         with db.session() as s:
             road = s.query(Road).filter(Road.id == road_id).first()
             road_length = road.get_length(s)[1]
@@ -100,7 +103,6 @@ class BaseGenerator(object):
             points = [(i["lat"], i["lng"]) for i in axe]
             lng = mean(i["lng"] for i in axe)
             lat = mean(i["lat"] for i in axe)
-            print(lng, lat)
             map = folium.Map(
                 location=(lat, lng)
                 # location=(mean(i['lng'] for i in axe), mean(i['lat'] for i in axe)),
@@ -122,7 +124,8 @@ class BaseGenerator(object):
             context_from_db["scheme"] = InlineImage(
                 doc_template, "scheme.png", width=Mm(173)
             )
-            context = context_from_db | AppContextManager.context["form_variables"]
+            print(TemplateVariablesManager().get_objects())
+            context = context_from_db | TemplateVariablesManager().get_objects()
             print(context)
         doc_template.render(context)
 

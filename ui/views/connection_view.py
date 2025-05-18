@@ -1,9 +1,10 @@
 from nicegui import ui
-from ui.components.forms.connection_form import ConnectionFormComponent
-from ui.components.lists.connection_history import SavedConnectionComponent
-from api.managers.implementations import ConnectionManager
+from ui.components.lists.access_connections import AccessSavedConnectionComponent
+from ui.components.forms.saved_file_form import SaveConnectionFileForm
+from ui.components.forms.db_connection_form import DBConnectionFormComponent
+from ui.components.lists.db_connections import SavedConnectionComponent
 from api.contexts.state import StateContext
-
+from api.utils import choose_file
 def connection_view():
 
     with ui.row().classes("col-span-full"):
@@ -13,12 +14,14 @@ def connection_view():
                 ms_access = ui.tab('MS Access')
             with ui.tab_panels(tabs, value=ms_sql).classes('w-full'):
                 with ui.tab_panel(ms_sql):
-                    ConnectionFormComponent()
+                    DBConnectionFormComponent()
                 with ui.tab_panel(ms_access):
-                    ui.upload(label="Загрузить файл").style("width: 30rem")
+                    SaveConnectionFileForm()
             
 
         with ui.column().classes("col-span-2"):
             ui.label("Сохраненные подключения")
             SavedConnectionComponent()
+            AccessSavedConnectionComponent()
             
+

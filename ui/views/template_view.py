@@ -1,24 +1,17 @@
 from nicegui import ui
 
-from api.managers.implementations import TemplateManager
+from api.managers.sqlite import SavedFileTemplateManager
 from ui.components.lists.saved_templates import SavedTemplatesListComponent
 from ui.components.forms.template_meta_data import TemplateVariablesForm
-
+from ui.components.forms.saved_file_form import SaveTemplateFileForm
 
 def template_view():
-    manager = TemplateManager()
+    manager = SavedFileTemplateManager()
 
     with ui.row().classes("col-span-full"):
         with ui.column().classes('col-span-2'):
             ui.label("Добавить шаблон")
-            ui.upload(
-                label="Загрузить файл",
-                on_upload=lambda file: (
-                    ui.notify(f"{file.name}"),
-                    manager.add_object(file),
-                    template_list.update()
-                    )
-                ).style("width: 30rem")
+            SaveTemplateFileForm()
 
         with ui.column().classes('col-span-2'):
             ui.label("Сохраненные шаблоны")  

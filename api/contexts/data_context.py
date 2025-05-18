@@ -1,4 +1,4 @@
-class AppContextManager:
+class AppContext:
     context = {
         "default_center": [52.28244, 104.298423],
         "selected_id": 0,

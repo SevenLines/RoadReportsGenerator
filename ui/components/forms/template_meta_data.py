@@ -1,5 +1,5 @@
 from nicegui import ui
-from api.managers.implementations import TemplateVariablesManager
+from api.managers.sqlite import TemplateVariablesManager
 from api.contexts.state import StateContext
 from ui.components.base import BaseComponent
 
@@ -14,9 +14,7 @@ class TemplateVariablesForm(BaseComponent):
 
     @ui.refreshable
     def render(self):
-        template_variables = self.manager.get_object(
-            StateContext.get_value("current_template")
-            ) or {}
+        template_variables = self.manager.get_objects() or {}
         with self.container:
             if len(template_variables) == 0:
                 ui.label("Переменные отсутсвуют")

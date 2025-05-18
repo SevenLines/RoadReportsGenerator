@@ -1,10 +1,9 @@
 from nicegui import ui
 
-from api.managers.implementations import ConnectionManager
+from api.managers.sqlite import DBConnectionManager
 from ui.components.base import BaseComponent
-from ui.components.lists.connection_history import SavedConnectionComponent
-class ConnectionFormComponent(BaseComponent):
-    manager = ConnectionManager()
+class DBConnectionFormComponent(BaseComponent):
+    manager = DBConnectionManager()
     context_key = "connection_history"
 
     def get_container(self):
