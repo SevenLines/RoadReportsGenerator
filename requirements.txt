@@ -5,3 +5,4 @@ docxtpl==0.18.0
 PySide6==6.7.2
 plotly==5.23.0
 nicegui
+tqdm

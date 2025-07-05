@@ -186,6 +186,7 @@ class TubesAggregateGenerator(TubesTableGenerator):
         result = {
             'ж/б': {'length': 0, 'count': 0},
             'металл': {'length': 0, 'count': 0},
+            'металл. гофрированная': {'length': 0, 'count': 0},
             'пластик': {'length': 0, 'count': 0},
             'дерево': {'length': 0, 'count': 0},
             'кирпич': {'length': 0, 'count': 0},
@@ -193,12 +194,14 @@ class TubesAggregateGenerator(TubesTableGenerator):
             'асбоцемент': {'length': 0, 'count': 0},
             'камень': {'length': 0, 'count': 0},
             'прочие': {'length': 0, 'count': 0},
+            'полиэтиленовая гофрированная': {'length': 0, 'count': 0},
+            'полиэтиленовая гофрированная "корсис"': {'length': 0, 'count': 0},
             'total': {'length': 0, 'count': 0},
         }
         for i in data:
             if 'Материал' in i.params:
-                result[i.params['Материал']]['length'] += i.distance
-                result[i.params['Материал']]['count'] += 1
+                result[i.params['Материал'].lower().strip()]['length'] += i.distance
+                result[i.params['Материал'].lower().strip()]['count'] += 1
             else:
                 result['прочие']['length'] += i.distance
                 result['прочие']['count'] += 1
